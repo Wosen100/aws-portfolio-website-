@@ -1,0 +1,47 @@
+name: Deploy Portfolio Website
+
+# When should this run?
+on:
+  push:
+    branches: [ main ]  # Run when you push to main branch
+
+# What should it do?
+jobs:
+  deploy:
+    runs-on: ubuntu-latest  # Use Ubuntu computer in the cloud
+    
+    steps:
+    # Step 1: Download your code
+    - name: Get the code
+      uses: actions/checkout@v3
+    
+    # Step 2: Set up AWS access
+    - name: Setup AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+    
+    # Step 3: Upload files to S3
+    - name: Upload website to S3
+      run: |
+        aws s3 sync . s3://${{ secrets.S3_BUCKET_NAME }} \
+          --exclude ".git/*" \
+          --exclude ".github/*" \
+          --exclude "*.md" \
+          --exclude "*.json" \
+          --delete
+    
+    # Step 4: Clear CloudFront cache
+    - name: Clear CloudFront cache
+      run: |
+        aws cloudfront create-invalidation \
+          --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
+          --paths "/*"
+    
+    # Step 5: Show success message
+    - name: Deployment complete
+      run: |
+        echo " Website deployed successfully!"
+        echo " Visit: https://d2ks2q7l6xp7nd.cloudfront.net"
