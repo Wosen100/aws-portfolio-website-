@@ -68,6 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(section); 
     }); 
 }); 
+
 <script>
         function showWord() {
             document.getElementById("output").textContent = "Certification"
